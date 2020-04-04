@@ -1,3 +1,5 @@
 spring:
   datasource:
     initialization-mode: embedded
+
+brewery.inventory.address: http://localhost:8082

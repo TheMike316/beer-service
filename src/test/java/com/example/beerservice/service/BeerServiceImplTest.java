@@ -1,11 +1,11 @@
 package com.example.beerservice.service;
 
 import com.example.beerservice.domain.Beer;
-import com.example.beerservice.domain.mapper.BeerMapper;
 import com.example.beerservice.repository.BeerRepository;
 import com.example.beerservice.web.model.BeerDto;
 import com.example.beerservice.web.model.BeerList;
 import com.example.beerservice.web.model.BeerStyle;
+import com.example.beerservice.web.model.mapper.BeerMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.example.beerservice.domain.mapper;
+package com.example.beerservice.web.model.mapper;
 
 import org.springframework.stereotype.Component;
 

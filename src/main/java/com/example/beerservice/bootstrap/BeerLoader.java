@@ -4,15 +4,15 @@ import com.example.beerservice.domain.Beer;
 import com.example.beerservice.repository.BeerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 
-@Component
+// not needed; data will be initialized with the data.sql script, as we need to set specific UUIDs, because
+// they need to be the same in the other services
+//@Component
 @RequiredArgsConstructor
-@Profile({"!staging", "!production"})
+//@Profile({"!staging", "!production"})
 public class BeerLoader implements InitializingBean {
 
     private static final String BEER_1_UPC = "0631234200036";

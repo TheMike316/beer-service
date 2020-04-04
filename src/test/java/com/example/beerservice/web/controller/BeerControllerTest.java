@@ -2,6 +2,7 @@ package com.example.beerservice.web.controller;
 
 import com.example.beerservice.service.BeerService;
 import com.example.beerservice.web.model.BeerDto;
+import com.example.beerservice.web.model.BeerList;
 import com.example.beerservice.web.model.BeerStyle;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -70,6 +72,25 @@ class BeerControllerTest {
                 .price(BigDecimal.valueOf(6.99))
                 .quantityOnHand(10000)
                 .build();
+    }
+
+    @Test
+    public void testGetList() throws Exception {
+        given(beerService.getList(any(), any(), any())).willReturn(new BeerList(Collections.singletonList(beerDto)));
+
+        mockMvc.perform(get("/api/v1/beer")
+                .requestAttr("pageNum", 0)
+                .requestAttr("pageSize", 10))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(mockId.toString()))
+                .andExpect(jsonPath("$.content[0].version").value(beerDto.getVersion()))
+                .andExpect(jsonPath("$.content[0].beerName").value(beerDto.getBeerName()))
+                .andExpect(jsonPath("$.content[0].beerStyle").value(beerDto.getBeerStyle().toString()))
+                .andExpect(jsonPath("$.content[0].upc").value(beerDto.getUpc()))
+                .andExpect(jsonPath("$.content[0].price").value(beerDto.getPrice().toPlainString()))
+                .andExpect(jsonPath("$.content[0].quantityOnHand").value(beerDto.getQuantityOnHand()))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test

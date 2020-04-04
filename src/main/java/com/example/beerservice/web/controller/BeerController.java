@@ -2,7 +2,9 @@ package com.example.beerservice.web.controller;
 
 import com.example.beerservice.service.BeerService;
 import com.example.beerservice.web.model.BeerDto;
+import com.example.beerservice.web.model.BeerList;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +21,23 @@ import java.util.UUID;
 @RequestMapping("/api/v1/beer")
 public class BeerController {
 
+    private static final int DEFAULT_PAGE_NUMBER = 0;
+    private static final int DEFAULT_PAGE_SIZE = 25;
+
     private final BeerService beerService;
+
+    @GetMapping
+    public BeerList listBeers(@RequestParam(value = "pageNumber", required = false) Integer pageNumber,
+                              @RequestParam(value = "pageSize", required = false) Integer pageSize,
+                              @RequestParam(value = "beerName", required = false) String beerName,
+                              @RequestParam(value = "beerStyle", required = false) String beerStyle) {
+
+        PageRequest pageRequest = PageRequest.of(
+                pageNumber == null ? DEFAULT_PAGE_NUMBER : pageNumber,
+                pageSize == null ? DEFAULT_PAGE_SIZE : pageSize
+        );
+        return beerService.getList(beerName, beerStyle, pageRequest);
+    }
 
     @GetMapping("/{beerId}")
     public BeerDto getById(@NotNull @PathVariable UUID beerId) {

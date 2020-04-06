@@ -42,13 +42,14 @@ public class BeerServiceCachingTest {
     CacheManager cacheManager;
 
     UUID id = UUID.randomUUID();
+    String upc = "0631234200036";
 
     Beer entity = Beer.builder()
             .id(id)
             .version(1L)
             .beerName("Testy McGuffin")
             .beerStyle(BeerStyle.ALE.toString())
-            .upc("0631234200036")
+            .upc(upc)
             .price(BigDecimal.valueOf(6.99))
             .quantityToBrew(200)
             .minOnHand(25)
@@ -59,7 +60,7 @@ public class BeerServiceCachingTest {
             .version(1L)
             .beerName("Testy McGuffin")
             .beerStyle(BeerStyle.ALE)
-            .upc("0631234200036")
+            .upc(upc)
             .price(BigDecimal.valueOf(6.99))
             .quantityOnHand(10000)
             .build();
@@ -98,16 +99,21 @@ public class BeerServiceCachingTest {
     @Test
     void testEvictAfterUpdate() {
         given(repository.findById(any())).willReturn(Optional.of(entity));
+        given(repository.findByUpc(any())).willReturn(Optional.of(entity));
 
         service.getById(id, false);
+        service.getByUpc(upc, false);
 
         service.updateBeer(id, dto);
 
         service.getById(id, false);
+        service.getByUpc(upc, false);
 
         // the service should not use the cache the second time, as the dto for the id should have been evicted by updating it
         // 3 instead of 2, because updateBeer also calls findById once
         verify(repository, times(3)).findById(id);
+
+        verify(repository, times(2)).findByUpc(upc);
     }
 
     @Test

@@ -21,27 +21,24 @@ import java.util.UUID;
 @RequestMapping("/api/v1/beer")
 public class BeerController {
 
-    private static final int DEFAULT_PAGE_NUMBER = 0;
-    private static final int DEFAULT_PAGE_SIZE = 25;
+    private static final String DEFAULT_PAGE_NUMBER = "0";
+    private static final String DEFAULT_PAGE_SIZE = "25";
 
     private final BeerService beerService;
 
     @GetMapping
-    public BeerList listBeers(@RequestParam(value = "pageNumber", required = false) Integer pageNumber,
-                              @RequestParam(value = "pageSize", required = false) Integer pageSize,
+    public BeerList listBeers(@RequestParam(value = "pageNumber", defaultValue = DEFAULT_PAGE_NUMBER) Integer pageNumber,
+                              @RequestParam(value = "pageSize", defaultValue = DEFAULT_PAGE_SIZE) Integer pageSize,
                               @RequestParam(value = "beerName", required = false) String beerName,
-                              @RequestParam(value = "beerStyle", required = false) String beerStyle) {
-
-        PageRequest pageRequest = PageRequest.of(
-                pageNumber == null ? DEFAULT_PAGE_NUMBER : pageNumber,
-                pageSize == null ? DEFAULT_PAGE_SIZE : pageSize
-        );
-        return beerService.getList(beerName, beerStyle, pageRequest);
+                              @RequestParam(value = "beerStyle", required = false) String beerStyle,
+                              @RequestParam(value = "showInventoryOnHand", defaultValue = "false") boolean showInventoryOnHand) {
+        return beerService.getList(beerName, beerStyle, PageRequest.of(pageNumber, pageSize), showInventoryOnHand);
     }
 
     @GetMapping("/{beerId}")
-    public BeerDto getById(@NotNull @PathVariable UUID beerId) {
-        return beerService.getById(beerId);
+    public BeerDto getById(@NotNull @PathVariable UUID beerId,
+                           @RequestParam(value = "showInventoryOnHand", defaultValue = "false") boolean showInventoryOnHand) {
+        return beerService.getById(beerId, showInventoryOnHand);
     }
 
     @PostMapping

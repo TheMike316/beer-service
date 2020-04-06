@@ -74,6 +74,7 @@ class BeerServiceImplTest {
                 .build();
 
         given(mapper.beerToBeerDto(entity)).willReturn(dto);
+        given(mapper.beerToBeerDtoWithInventoryData(entity)).willReturn(dto);
         given(mapper.beerDtoToBeer(dto)).willReturn(entity);
     }
 
@@ -81,7 +82,7 @@ class BeerServiceImplTest {
     void getById() {
         given(repository.findById(any())).willReturn(Optional.of(entity));
 
-        var actual = service.getById(id);
+        var actual = service.getById(id, false);
 
         Assertions.assertNotNull(actual);
         assertEquals(entity.getId(), actual.getId());
@@ -92,13 +93,32 @@ class BeerServiceImplTest {
         assertEquals(entity.getPrice(), actual.getPrice());
 
         verify(repository, times(1)).findById(id);
+        verify(mapper, times(1)).beerToBeerDto(any());
+    }
+
+    @Test
+    void getByIdWithInventory() {
+        given(repository.findById(any())).willReturn(Optional.of(entity));
+
+        var actual = service.getById(id, true);
+
+        Assertions.assertNotNull(actual);
+        assertEquals(entity.getId(), actual.getId());
+        assertEquals(entity.getVersion(), actual.getVersion());
+        assertEquals(entity.getBeerName(), actual.getBeerName());
+        assertEquals(entity.getBeerStyle(), actual.getBeerStyle().toString());
+        assertEquals(entity.getUpc(), actual.getUpc());
+        assertEquals(entity.getPrice(), actual.getPrice());
+
+        verify(repository, times(1)).findById(id);
+        verify(mapper, times(1)).beerToBeerDtoWithInventoryData(any());
     }
 
     @Test
     void getByIdFail() {
         given(repository.findById(any())).willReturn(Optional.empty());
 
-        var e = Assertions.assertThrows(ResponseStatusException.class, () -> service.getById(id));
+        var e = Assertions.assertThrows(ResponseStatusException.class, () -> service.getById(id, false));
         assertEquals(HttpStatus.NOT_FOUND, e.getStatus());
     }
 
@@ -154,7 +174,7 @@ class BeerServiceImplTest {
 
         given(repository.findAll(any(Pageable.class))).willReturn(beerPage);
 
-        var actual = service.getList(null, null, pageRequest);
+        var actual = service.getList(null, null, pageRequest, false);
 
         Assertions.assertNotNull(actual);
         assertEquals(expected.getContent().get(0).getId(), actual.getContent().get(0).getId());
@@ -166,6 +186,7 @@ class BeerServiceImplTest {
         verify(repository, times(0)).findAllByBeerNameAndBeerStyle(anyString(), anyString(), any(Pageable.class));
         verify(repository, times(0)).findAllByBeerStyle(anyString(), any(Pageable.class));
         verify(repository, times(0)).findAllByBeerName(anyString(), any(Pageable.class));
+        verify(mapper, times(actual.getNumberOfElements())).beerToBeerDto(any());
     }
 
     @Test
@@ -176,7 +197,7 @@ class BeerServiceImplTest {
 
         given(repository.findAllByBeerName(anyString(), any(Pageable.class))).willReturn(beerPage);
 
-        var actual = service.getList(dto.getBeerName(), null, pageRequest);
+        var actual = service.getList(dto.getBeerName(), null, pageRequest, false);
 
         Assertions.assertNotNull(actual);
         assertEquals(expected.getContent().get(0).getId(), actual.getContent().get(0).getId());
@@ -188,6 +209,7 @@ class BeerServiceImplTest {
         verify(repository, times(0)).findAllByBeerNameAndBeerStyle(anyString(), anyString(), any(Pageable.class));
         verify(repository, times(0)).findAllByBeerStyle(anyString(), any(Pageable.class));
         verify(repository, times(0)).findAll(any(Pageable.class));
+        verify(mapper, times(actual.getNumberOfElements())).beerToBeerDto(any());
     }
 
     @Test
@@ -198,7 +220,7 @@ class BeerServiceImplTest {
 
         given(repository.findAllByBeerStyle(anyString(), any(Pageable.class))).willReturn(beerPage);
 
-        var actual = service.getList(null, dto.getBeerStyle().name(), pageRequest);
+        var actual = service.getList(null, dto.getBeerStyle().name(), pageRequest, false);
 
         Assertions.assertNotNull(actual);
         assertEquals(expected.getContent().get(0).getId(), actual.getContent().get(0).getId());
@@ -210,6 +232,7 @@ class BeerServiceImplTest {
         verify(repository, times(0)).findAllByBeerNameAndBeerStyle(anyString(), anyString(), any(Pageable.class));
         verify(repository, times(0)).findAllByBeerName(anyString(), any(Pageable.class));
         verify(repository, times(0)).findAll(any(Pageable.class));
+        verify(mapper, times(actual.getNumberOfElements())).beerToBeerDto(any());
     }
 
     @Test
@@ -220,7 +243,7 @@ class BeerServiceImplTest {
 
         given(repository.findAllByBeerNameAndBeerStyle(anyString(), anyString(), any(Pageable.class))).willReturn(beerPage);
 
-        var actual = service.getList(dto.getBeerName(), dto.getBeerStyle().name(), pageRequest);
+        var actual = service.getList(dto.getBeerName(), dto.getBeerStyle().name(), pageRequest, false);
 
         Assertions.assertNotNull(actual);
         assertEquals(expected.getContent().get(0).getId(), actual.getContent().get(0).getId());
@@ -232,6 +255,23 @@ class BeerServiceImplTest {
         verify(repository, times(0)).findAllByBeerStyle(anyString(), any(Pageable.class));
         verify(repository, times(0)).findAllByBeerName(anyString(), any(Pageable.class));
         verify(repository, times(0)).findAll(any(Pageable.class));
+        verify(mapper, times(actual.getNumberOfElements())).beerToBeerDto(any());
+    }
+
+    @Test
+    void getListWithInventory() {
+
+        var pageRequest = PageRequest.of(0, 10);
+        var beerPage = mockBeerPage(pageRequest);
+
+        given(repository.findAll(any(Pageable.class))).willReturn(beerPage);
+
+        var actual = service.getList(null, null, pageRequest, true);
+
+        Assertions.assertNotNull(actual);
+
+        verify(repository, times(1)).findAll(any(Pageable.class));
+        verify(mapper, times(actual.getNumberOfElements())).beerToBeerDtoWithInventoryData(any());
     }
 
     private Page<Beer> mockBeerPage(PageRequest pageRequest) {

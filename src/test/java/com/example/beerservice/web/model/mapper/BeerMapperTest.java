@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = {BeerMapperImpl.class, BeerMapperImpl_.class, DateMapper.class})
 class BeerMapperTest {
@@ -45,11 +47,32 @@ class BeerMapperTest {
                 .quantityToBrew(10)
                 .build();
 
-        given(beerInventoryService.getOnHandInventory(any())).willReturn(100);
-
         var dto = beerMapper.beerToBeerDto(beer);
         assertBeers(dto, beer);
+        verify(beerInventoryService, times(0)).getOnHandInventory(any());
+    }
+
+    @Test
+    void beerToBeerDtoWithInventory() {
+        Beer beer = Beer.builder()
+                .id(UUID.randomUUID())
+                .version(1L)
+                .createdDate(Timestamp.from(Instant.now()))
+                .lastModifiedDate(Timestamp.from(Instant.now()))
+                .beerName("Asdf Beer")
+                .beerStyle("ALE")
+                .price(new BigDecimal("8.99"))
+                .upc("12345")
+                .minOnHand(100)
+                .quantityToBrew(10)
+                .build();
+
+        given(beerInventoryService.getOnHandInventory(any())).willReturn(100);
+
+        var dto = beerMapper.beerToBeerDtoWithInventoryData(beer);
+        assertBeers(dto, beer);
         assertEquals(100, dto.getQuantityOnHand());
+        verify(beerInventoryService, times(1)).getOnHandInventory(any());
     }
 
     @Test

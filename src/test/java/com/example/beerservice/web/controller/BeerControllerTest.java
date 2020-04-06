@@ -26,15 +26,14 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
-import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.restdocs.snippet.Attributes.key;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -76,11 +75,9 @@ class BeerControllerTest {
 
     @Test
     public void testGetList() throws Exception {
-        given(beerService.getList(any(), any(), any())).willReturn(new BeerList(Collections.singletonList(beerDto)));
+        given(beerService.getList(any(), any(), any(), anyBoolean())).willReturn(new BeerList(Collections.singletonList(beerDto)));
 
-        mockMvc.perform(get("/api/v1/beer")
-                .requestAttr("pageNum", 0)
-                .requestAttr("pageSize", 10))
+        mockMvc.perform(get("/api/v1/beer?pageNum=0&pageSize=10&showInventoryOnHand=false"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content[0].id").value(mockId.toString()))
@@ -94,11 +91,20 @@ class BeerControllerTest {
     }
 
     @Test
+    void getListWithInventory() throws Exception {
+        given(beerService.getList(any(), any(), any(), anyBoolean())).willReturn(new BeerList(Collections.singletonList(beerDto)));
+        mockMvc.perform(get("/api/v1/beer?pageNum=0&pageSize=10&showInventoryOnHand=true"))
+                .andExpect(status().isOk());
+
+        verify(beerService, times(1)).getList(any(), any(), any(), eq(true));
+    }
+
+    @Test
     public void testGetById() throws Exception {
 
-        given(beerService.getById(any())).willReturn(beerDto);
+        given(beerService.getById(any(), anyBoolean())).willReturn(beerDto);
 
-        mockMvc.perform(get("/api/v1/beer/{beerId}", mockId))
+        mockMvc.perform(get("/api/v1/beer/{beerId}?showInventoryOnHand=false", mockId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(mockId.toString()))
                 .andExpect(jsonPath("$.version").value(beerDto.getVersion()))
@@ -111,10 +117,24 @@ class BeerControllerTest {
                         pathParameters(
                                 parameterWithName("beerId").description("UUID of the desired beer")
                         ),
+                        requestParameters(
+                                parameterWithName("showInventoryOnHand")
+                                        .description("Fetch quantity on hand data. default = false")
+                        ),
                         getBeerResponseFieldsSnippet()
                 ));
 
-        verify(beerService, times(1)).getById(any());
+        verify(beerService, times(1)).getById(any(), anyBoolean());
+    }
+
+    @Test
+    void getByIdWithInventory() throws Exception {
+        given(beerService.getById(any(), anyBoolean())).willReturn(beerDto);
+
+        mockMvc.perform(get("/api/v1/beer/{beerId}?showInventoryOnHand=true", mockId))
+                .andExpect(status().isOk());
+
+        verify(beerService, times(1)).getById(any(), eq(true));
     }
 
     private ResponseFieldsSnippet getBeerResponseFieldsSnippet() {

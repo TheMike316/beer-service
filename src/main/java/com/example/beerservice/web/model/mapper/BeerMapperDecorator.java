@@ -8,14 +8,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 public class BeerMapperDecorator implements BeerMapper {
 
-    private BeerMapper beerMapper;
+    private BeerMapper delegate;
 
     private BeerInventoryService beerInventoryService;
 
     @Autowired
     @Qualifier("delegate")
-    public void setBeerMapper(BeerMapper beerMapper) {
-        this.beerMapper = beerMapper;
+    public void setDelegate(BeerMapper delegate) {
+        this.delegate = delegate;
     }
 
     @Autowired
@@ -25,12 +25,17 @@ public class BeerMapperDecorator implements BeerMapper {
 
     @Override
     public Beer beerDtoToBeer(BeerDto beerDto) {
-        return beerMapper.beerDtoToBeer(beerDto);
+        return delegate.beerDtoToBeer(beerDto);
     }
 
     @Override
     public BeerDto beerToBeerDto(Beer beer) {
-        var dto = beerMapper.beerToBeerDto(beer);
+        return delegate.beerToBeerDto(beer);
+    }
+
+    @Override
+    public BeerDto beerToBeerDtoWithInventoryData(Beer beer) {
+        var dto = delegate.beerToBeerDto(beer);
         var quantityOnHand = beerInventoryService.getOnHandInventory(beer.getId());
         dto.setQuantityOnHand(quantityOnHand);
 

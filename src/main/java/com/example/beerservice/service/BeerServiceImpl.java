@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,9 +28,12 @@ public class BeerServiceImpl implements BeerService {
     private final BeerMapper beerMapper;
 
     @Override
-    public BeerDto getById(UUID beerId) {
-        return beerRepository.findById(beerId).map(beerMapper::beerToBeerDto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find beer with id: " + beerId));
+    public BeerDto getById(UUID beerId, boolean showInventoryOnHand) {
+        return beerRepository.findById(beerId)
+                .map(beer -> showInventoryOnHand ?
+                        beerMapper.beerToBeerDtoWithInventoryData(beer) : beerMapper.beerToBeerDto(beer))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Could not find beer with id: " + beerId));
     }
 
     @Override
@@ -60,7 +64,7 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public BeerList getList(String beerName, String beerStyle, PageRequest pageRequest) {
+    public BeerList getList(String beerName, String beerStyle, PageRequest pageRequest, boolean showInventoryOnHand) {
 
         Page<Beer> beerPage;
         if (StringUtils.isEmpty(beerName) && StringUtils.isEmpty(beerStyle)) {
@@ -76,8 +80,13 @@ public class BeerServiceImpl implements BeerService {
             beerPage = beerRepository.findAllByBeerNameAndBeerStyle(beerName, beerStyle, pageRequest);
         }
 
+        List<BeerDto> content = beerPage.getContent().stream()
+                .map(beer -> showInventoryOnHand ?
+                        beerMapper.beerToBeerDtoWithInventoryData(beer) : beerMapper.beerToBeerDto(beer))
+                .collect(Collectors.toList());
+
         return new BeerList(
-                beerPage.getContent().stream().map(beerMapper::beerToBeerDto).collect(Collectors.toList()),
+                content,
                 PageRequest.of(beerPage.getPageable().getPageNumber(), beerPage.getPageable().getPageSize()),
                 beerPage.getTotalElements()
         );

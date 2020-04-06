@@ -1,5 +1,8 @@
 spring:
   datasource:
     initialization-mode: embedded
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
 
 brewery.inventory.address: http://localhost:8082

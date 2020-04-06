@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest
@@ -15,6 +16,16 @@ class BeerRepositoryTest {
     BeerRepository repository;
 
     PageRequest pageRequest = PageRequest.of(0, 10);
+
+    @Test
+    void findByUpc() {
+        String upc = "0631234200036";
+
+        var optional = repository.findByUpc(upc);
+
+        assert optional.isPresent();
+        assertEquals(upc, optional.get().getUpc());
+    }
 
     @Test
     void findAllByBeerName() {

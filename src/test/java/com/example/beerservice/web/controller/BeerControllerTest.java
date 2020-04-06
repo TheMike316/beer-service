@@ -51,6 +51,7 @@ class BeerControllerTest {
     BeerDto beerDto;
 
     UUID mockId;
+    String upc = "0631234200036";
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -67,7 +68,7 @@ class BeerControllerTest {
                 .lastModifiedDate(date)
                 .beerName("Testy McGuffin")
                 .beerStyle(BeerStyle.ALE)
-                .upc("0631234200036")
+                .upc(upc)
                 .price(BigDecimal.valueOf(6.99))
                 .quantityOnHand(10000)
                 .build();
@@ -135,6 +136,33 @@ class BeerControllerTest {
                 .andExpect(status().isOk());
 
         verify(beerService, times(1)).getById(any(), eq(true));
+    }
+
+    @Test
+    void getByUpc() throws Exception {
+        given(beerService.getByUpc(anyString(), anyBoolean())).willReturn(beerDto);
+
+        mockMvc.perform(get("/api/v1/beer/upc/{upc}?showInventoryOnHand=false", upc))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(mockId.toString()))
+                .andExpect(jsonPath("$.version").value(beerDto.getVersion()))
+                .andExpect(jsonPath("$.beerName").value(beerDto.getBeerName()))
+                .andExpect(jsonPath("$.beerStyle").value(beerDto.getBeerStyle().toString()))
+                .andExpect(jsonPath("$.upc").value(beerDto.getUpc()))
+                .andExpect(jsonPath("$.price").value(beerDto.getPrice().toPlainString()))
+                .andExpect(jsonPath("$.quantityOnHand").value(beerDto.getQuantityOnHand()))
+                .andDo(document("v1/beer-get-upc",
+                        pathParameters(
+                                parameterWithName("upc").description("UPC of the desired beer")
+                        ),
+                        requestParameters(
+                                parameterWithName("showInventoryOnHand")
+                                        .description("Fetch quantity on hand data. default = false")
+                        ),
+                        getBeerResponseFieldsSnippet()
+                ));
+
+        verify(beerService, times(1)).getByUpc(anyString(), eq(false));
     }
 
     private ResponseFieldsSnippet getBeerResponseFieldsSnippet() {

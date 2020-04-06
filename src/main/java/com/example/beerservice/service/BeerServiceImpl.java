@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,17 @@ public class BeerServiceImpl implements BeerService {
                         "Could not find beer with id: " + beerId));
     }
 
+
+    @Override
+    @Cacheable(cacheNames = "beerUpcCache", key = "#upc", condition = "#showInventoryOnHand == false ")
+    public BeerDto getByUpc(String upc, boolean showInventoryOnHand) {
+        return beerRepository.findByUpc(upc)
+                .map(beer -> showInventoryOnHand ?
+                        beerMapper.beerToBeerDtoWithInventoryData(beer) : beerMapper.beerToBeerDto(beer))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Could not find beer with upc: " + upc));
+    }
+
     @Override
     @CacheRemoveAll(cacheName = "beerListCache")
     public BeerDto saveNewBeer(BeerDto beerDto) {
@@ -52,7 +64,13 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "beerCache", key = "#beerId")
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = "beerCache", key = "#beerId"),
+                    @CacheEvict(cacheNames = "beerUpcCache", key = "#beerDto.upc")
+            }
+    )
+    @CacheRemoveAll(cacheName = "beerListCache")
     public void updateBeer(UUID beerId, BeerDto beerDto) {
         var beer = beerRepository.findById(beerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find beer with id: " + beerId));

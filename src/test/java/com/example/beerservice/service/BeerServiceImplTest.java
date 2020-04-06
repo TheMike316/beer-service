@@ -43,6 +43,7 @@ class BeerServiceImplTest {
     BeerServiceImpl service;
 
     UUID id;
+    String upc = "0631234200036";
 
     Beer entity;
 
@@ -57,7 +58,7 @@ class BeerServiceImplTest {
                 .version(1L)
                 .beerName("Testy McGuffin")
                 .beerStyle(BeerStyle.ALE.toString())
-                .upc("0631234200036")
+                .upc(upc)
                 .price(BigDecimal.valueOf(6.99))
                 .quantityToBrew(200)
                 .minOnHand(25)
@@ -68,7 +69,7 @@ class BeerServiceImplTest {
                 .version(1L)
                 .beerName("Testy McGuffin")
                 .beerStyle(BeerStyle.ALE)
-                .upc("0631234200036")
+                .upc(upc)
                 .price(BigDecimal.valueOf(6.99))
                 .quantityOnHand(10000)
                 .build();
@@ -84,13 +85,7 @@ class BeerServiceImplTest {
 
         var actual = service.getById(id, false);
 
-        Assertions.assertNotNull(actual);
-        assertEquals(entity.getId(), actual.getId());
-        assertEquals(entity.getVersion(), actual.getVersion());
-        assertEquals(entity.getBeerName(), actual.getBeerName());
-        assertEquals(entity.getBeerStyle(), actual.getBeerStyle().toString());
-        assertEquals(entity.getUpc(), actual.getUpc());
-        assertEquals(entity.getPrice(), actual.getPrice());
+        assertDto(actual);
 
         verify(repository, times(1)).findById(id);
         verify(mapper, times(1)).beerToBeerDto(any());
@@ -102,13 +97,7 @@ class BeerServiceImplTest {
 
         var actual = service.getById(id, true);
 
-        Assertions.assertNotNull(actual);
-        assertEquals(entity.getId(), actual.getId());
-        assertEquals(entity.getVersion(), actual.getVersion());
-        assertEquals(entity.getBeerName(), actual.getBeerName());
-        assertEquals(entity.getBeerStyle(), actual.getBeerStyle().toString());
-        assertEquals(entity.getUpc(), actual.getUpc());
-        assertEquals(entity.getPrice(), actual.getPrice());
+        assertDto(actual);
 
         verify(repository, times(1)).findById(id);
         verify(mapper, times(1)).beerToBeerDtoWithInventoryData(any());
@@ -122,19 +111,39 @@ class BeerServiceImplTest {
         assertEquals(HttpStatus.NOT_FOUND, e.getStatus());
     }
 
+
+    @Test
+    void getByUpc() {
+        given(repository.findByUpc(anyString())).willReturn(Optional.of(entity));
+
+        var actual = service.getByUpc(upc, false);
+
+        assertDto(actual);
+
+        verify(repository, times(1)).findByUpc(upc);
+        verify(mapper, times(1)).beerToBeerDto(any());
+    }
+
+    @Test
+    void getByUpcWithInventory() {
+        given(repository.findByUpc(anyString())).willReturn(Optional.of(entity));
+
+        var actual = service.getByUpc(upc, true);
+
+        assertDto(actual);
+
+        verify(repository, times(1)).findByUpc(upc);
+        verify(mapper, times(1)).beerToBeerDtoWithInventoryData(any());
+    }
+
+
     @Test
     void saveNewBeer() {
         given(repository.save(any())).willReturn(entity);
 
         var actual = service.saveNewBeer(dto);
 
-        Assertions.assertNotNull(actual);
-        assertEquals(entity.getId(), actual.getId());
-        assertEquals(entity.getVersion(), actual.getVersion());
-        assertEquals(entity.getBeerName(), actual.getBeerName());
-        assertEquals(entity.getBeerStyle(), actual.getBeerStyle().toString());
-        assertEquals(entity.getUpc(), actual.getUpc());
-        assertEquals(entity.getPrice(), actual.getPrice());
+        assertDto(actual);
 
         verify(repository, times(1)).save(any());
     }
@@ -274,6 +283,16 @@ class BeerServiceImplTest {
         verify(mapper, times(actual.getNumberOfElements())).beerToBeerDtoWithInventoryData(any());
     }
 
+    private void assertDto(BeerDto actual) {
+        Assertions.assertNotNull(actual);
+        assertEquals(entity.getId(), actual.getId());
+        assertEquals(entity.getVersion(), actual.getVersion());
+        assertEquals(entity.getBeerName(), actual.getBeerName());
+        assertEquals(entity.getBeerStyle(), actual.getBeerStyle().toString());
+        assertEquals(entity.getUpc(), actual.getUpc());
+        assertEquals(entity.getPrice(), actual.getPrice());
+    }
+
     private Page<Beer> mockBeerPage(PageRequest pageRequest) {
         var beerPage = mock(Page.class);
         given(beerPage.getContent()).willReturn(Collections.singletonList(entity));
@@ -281,4 +300,5 @@ class BeerServiceImplTest {
         given(beerPage.getTotalElements()).willReturn(1L);
         return beerPage;
     }
+
 }

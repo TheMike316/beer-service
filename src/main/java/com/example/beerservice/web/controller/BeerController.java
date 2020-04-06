@@ -41,6 +41,12 @@ public class BeerController {
         return beerService.getById(beerId, showInventoryOnHand);
     }
 
+    @GetMapping("/upc/{upc}")
+    public BeerDto getByUpc(@NotNull @PathVariable String upc,
+                            @RequestParam(value = "showInventoryOnHand", defaultValue = "false") boolean showInventoryOnHand) {
+        return beerService.getByUpc(upc, showInventoryOnHand);
+    }
+
     @PostMapping
     public ResponseEntity<Void> createNewBeer(@Valid @RequestBody BeerDto beerDto) {
         BeerDto savedBeer = beerService.saveNewBeer(beerDto);

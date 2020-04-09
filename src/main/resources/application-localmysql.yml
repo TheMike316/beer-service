@@ -3,6 +3,7 @@ spring:
     username: beer_service
     password: password
     url: jdbc:mysql://localhost:3306/beerservice?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+  #    initialization-mode: always
   jpa:
     hibernate:
       ddl-auto: update

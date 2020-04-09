@@ -4,15 +4,15 @@ import com.example.beerservice.domain.Beer;
 import com.example.beerservice.repository.BeerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
 
-// not needed; data will be initialized with the data.sql script, as we need to set specific UUIDs, because
-// they need to be the same in the other services
-//@Component
+@Component
 @RequiredArgsConstructor
-//@Profile({"!staging", "!production"})
+@Profile({"!staging", "!production"})
 public class BeerLoader implements InitializingBean {
 
     private static final String BEER_1_UPC = "0631234200036";
@@ -38,22 +38,25 @@ public class BeerLoader implements InitializingBean {
                         .quantityToBrew(200)
                         .upc(BEER_1_UPC)
                         .price(new BigDecimal("12.95"))
+                        .version(1L)
                         .build(),
                 Beer.builder()
-                        .beerName("Stiegl")
-                        .beerStyle("Lager")
-                        .minOnHand(15)
-                        .quantityToBrew(250)
+                        .beerName("Galaxy Cat")
+                        .beerStyle("PALE_ALE")
+                        .minOnHand(12)
+                        .quantityToBrew(200)
                         .upc(BEER_2_UPC)
                         .price(new BigDecimal("12.95"))
+                        .version(1L)
                         .build(),
                 Beer.builder()
-                        .beerName("Kaiser")
-                        .beerStyle("Lager")
-                        .minOnHand(15)
-                        .quantityToBrew(250)
+                        .beerName("Pinball Porter")
+                        .beerStyle("PORTER")
+                        .minOnHand(12)
+                        .quantityToBrew(200)
                         .upc(BEER_3_UPC)
                         .price(new BigDecimal("12.95"))
+                        .version(1L)
                         .build()
         );
 

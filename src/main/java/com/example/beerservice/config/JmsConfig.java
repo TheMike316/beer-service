@@ -1,11 +1,14 @@
 package com.example.beerservice.config;
 
+import com.example.beerservice.event.NewInventoryEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
+
+import java.util.HashMap;
 
 @Configuration
 public class JmsConfig {
@@ -19,6 +22,10 @@ public class JmsConfig {
         converter.setTargetType(MessageType.TEXT);
         converter.setTypeIdPropertyName("_type");
         converter.setObjectMapper(objectMapper);
+
+        var typeMap = new HashMap<String, Class<?>>();
+        typeMap.put("new-inventory-event", NewInventoryEvent.class);
+        converter.setTypeIdMappings(typeMap);
 
         return converter;
     }

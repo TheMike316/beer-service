@@ -5,5 +5,8 @@ spring:
   cache:
     jcache:
       config: classpath:ehcache.xml
+  artemis:
+    user: artemis
+    password: artemis
 
 brewery.inventory.address: http://localhost:8082

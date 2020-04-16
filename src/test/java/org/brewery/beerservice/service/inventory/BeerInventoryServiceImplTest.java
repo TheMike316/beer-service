@@ -1,6 +1,6 @@
 package org.brewery.beerservice.service.inventory;
 
-import org.brewery.beerservice.service.inventory.model.BeerInventoryDto;
+import org.brewery.common.model.BeerInventoryDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

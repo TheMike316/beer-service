@@ -1,4 +1,4 @@
-package org.brewery.beerservice.service.inventory.model;
+package org.brewery.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,6 @@
 package org.brewery.beerservice.service.inventory;
 
-import org.brewery.beerservice.service.inventory.model.BeerInventoryDto;
+import org.brewery.common.model.BeerInventoryDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;

@@ -90,7 +90,7 @@ class OrderValidationListenerTest {
 
         var expectedResponse = ValidateBeerOrderResponse.builder().isValid(false).beerOrderId(dto.getId()).build();
 
-        verify(beerRepository, times(2)).existsByUpc(anyString());
+        verify(beerRepository, times(3)).existsByUpc(anyString());
         verify(jmsTemplate, times(1)).convertAndSend(JmsConfig.VALIDATE_ORDER_RESPONSE_QUEUE, expectedResponse);
     }
 }

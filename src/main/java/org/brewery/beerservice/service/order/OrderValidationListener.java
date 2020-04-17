@@ -12,6 +12,8 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.stream.Collectors;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,9 +28,12 @@ public class OrderValidationListener {
 
         log.info("Received validate order request for order {}", dto.getId());
 
-        var valid = dto.getBeerOrderLines().stream()
+        var invalidUpcs = dto.getBeerOrderLines().stream()
                 .map(BeerOrderLineDto::getUpc)
-                .allMatch(beerRepository::existsByUpc);
+                .filter(upc -> !beerRepository.existsByUpc(upc))
+                .collect(Collectors.toList());
+
+        var valid = invalidUpcs.isEmpty();
 
         var response = ValidateBeerOrderResponse.builder()
                 .beerOrderId(dto.getId())
@@ -40,6 +45,6 @@ public class OrderValidationListener {
         if (valid)
             log.info("Order {} is valid. Sent response.", dto.getId());
         else
-            log.warn("Order {} is NOT valid! Sent response.", dto.getId());
+            log.warn("Order {} is NOT valid! Invalid UPCs: {}.", dto.getId(), invalidUpcs);
     }
 }
